@@ -1,53 +1,49 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>تسجيل حساب جديد</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    input, button { padding: 10px; margin: 5px 0; width: 100%; }
-    .message { margin: 10px 0; }
-  </style>
+<meta charset="UTF-8">
+<title>تسجيل حساب جديد</title>
 </head>
 <body>
-  <h1>تسجيل حساب جديد</h1>
-  <div id="emailSection">
-    <input type="email" id="email" placeholder="أدخل بريدك الإلكتروني" />
-    <button id="sendBtn">إرسال رمز التحقق</button>
-    <div id="emailMsg" class="message"></div>
-  </div>
+<h1>تسجيل حساب جديد</h1>
 
-  <div id="verifySection" style="display:none">
-    <input type="text" id="code" placeholder="أدخل رمز التحقق" />
-    <button id="verifyBtn">تحقق من الرمز</button>
-    <div id="verifyMsg" class="message"></div>
-  </div>
+<div id="emailSection">
+  <input type="email" id="email" placeholder="أدخل بريدك الإلكتروني"/>
+  <button id="sendBtn">إرسال رمز التحقق</button>
+  <div id="emailMsg"></div>
+</div>
+
+<div id="verifySection" style="display:none;">
+  <input type="text" id="code" placeholder="أدخل رمز التحقق"/>
+  <button id="verifyBtn">تحقق من الرمز</button>
+  <div id="verifyMsg"></div>
+</div>
 
 <script>
 const sendBtn = document.getElementById('sendBtn');
 const verifyBtn = document.getElementById('verifyBtn');
 
-sendBtn.addEventListener('click', async () => {
+sendBtn.addEventListener('click', async ()=>{
   const email = document.getElementById('email').value;
-  const res = await fetch('/api/send-code', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const res = await fetch('/api/send-code',{
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
     body: JSON.stringify({ email })
   });
   const data = await res.json();
   document.getElementById('emailMsg').innerText = data.message;
   if(res.ok){
-    document.getElementById('emailSection').style.display = 'none';
-    document.getElementById('verifySection').style.display = 'block';
+    document.getElementById('emailSection').style.display='none';
+    document.getElementById('verifySection').style.display='block';
   }
 });
 
-verifyBtn.addEventListener('click', async () => {
+verifyBtn.addEventListener('click', async ()=>{
   const email = document.getElementById('email').value;
   const code = document.getElementById('code').value;
-  const res = await fetch('/api/verify-code', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const res = await fetch('/api/verify-code',{
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
     body: JSON.stringify({ email, code })
   });
   const data = await res.json();
