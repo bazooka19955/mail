@@ -1,15 +1,13 @@
 {
-  "name": "email-verification-app",
+  "name": "registration-site",
   "version": "1.0.0",
-  "description": "سيرفر Node.js لإرسال والتحقق من رموز البريد",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "nodemailer": "^6.9.4"
+    "nodemailer": "^6.9.7",
+    "express-rate-limit": "^6.10.0"
   }
 }
