@@ -21,8 +21,8 @@ const transporter = nodemailer.createTransport({
   port: 587,            // 465 ممكن تستخدمه مع secure: true
   secure: false,        // false = STARTTLS
   auth: {
-    user: 'ali1995@hussein.my', // البريد الكامل
-    pass: 'Aa19955Aa@@'                 // كلمة المرور
+    user: 'ali1995', // البريد الكامل
+    pass: 'Aa19955Aa'                 // كلمة المرور
   },
   tls: { rejectUnauthorized: true }      // تحقق من شهادة السيرفر
 });
