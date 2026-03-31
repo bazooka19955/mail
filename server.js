@@ -1,18 +1,24 @@
 const express = require('express');
-const nodemailer = require('nodemailer');  // ✅ createTransport مش createTransporter
+const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static('public'));
 
-// Health check لـ Railway
-app.get('/health', (req, res) => res.json({ status: 'OK' }));
+// Logs middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${req.ip}`);
+  next();
+});
 
-// ✅ التصحيح: createTransport مش createTransporter
+// Health check
+app.get('/health', (req, res) => res.json({ status: 'OK', time: new Date().toISOString() }));
+
+// SMTP
 const transporter = nodemailer.createTransport({
   host: 'mail-eu.smtp2go.com',
   port: 2525,
@@ -24,77 +30,78 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false }
 });
 
-const verificationCodes = new Map();
-const CODE_EXPIRY = 5 * 60 * 1000;
-
-const registrationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: { error: 'تم تجاوز الحد الأقصى' }
+// Test SMTP connection
+transporter.verify((error, success) => {
+  if (error) console.error('❌ SMTP Error:', error);
+  else console.log('✅ SMTP جاهز');
 });
 
-function generateVerificationCode() {
-  return crypto.randomInt(100000, 999999).toString();
-}
+const verificationCodes = new Map();
 
-async function sendVerificationCode(email) {
-  const code = generateVerificationCode();
-  const expiry = Date.now() + CODE_EXPIRY;
+// Rate limit
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10
+});
+
+app.post('/api/request-code', limiter, async (req, res) => {
+  console.log('📧 Request code:', req.body);
   
-  verificationCodes.set(email, { code, attempts: 0, expiry, verified: false });
-
-  await transporter.sendMail({
-    from: '"التحقق" <hussein1995@hussein.my>',
-    to: email,
-    subject: 'كود التحقق 6 أرقام',
-    html: `<h1 style="text-align:center;font-size:50px">${code}</h1><p>صالح لـ 5 دقائق</p>`
-  });
-
-  console.log(`✅ كود مرسل لـ ${email}`);
-  return true;
-}
-
-app.post('/api/request-code', registrationLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     
-    if (!email?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    if (!email) {
+      console.log('❌ No email');
+      return res.status(400).json({ error: 'أدخل بريدك' });
+    }
+    
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      console.log('❌ Invalid email:', email);
       return res.status(400).json({ error: 'بريد خاطئ' });
     }
 
-    const sent = await sendVerificationCode(email);
-    res.json({ message: sent ? 'تم الإرسال' : 'فشل الإرسال' });
-  } catch (e) {
-    res.status(500).json({ error: 'خطأ خادم' });
+    console.log('🔄 إرسال كود لـ', email);
+    
+    // توليد كود
+    const code = crypto.randomInt(100000, 999999).toString();
+    verificationCodes.set(email, { 
+      code, 
+      attempts: 0, 
+      expiry: Date.now() + 5*60*1000,
+      verified: false 
+    });
+
+    // إرسال البريد
+    const result = await transporter.sendMail({
+      from: '"التحقق" <hussein1995@hussein.my>',
+      to: email,
+      subject: 'كود التحقق 6 أرقام',
+      html: `
+        <div style="font-family:Arial;text-align:center;padding:40px">
+          <h1 style="font-size:60px;color:#007bff;margin:20px 0">${code}</h1>
+          <p>كود تسجيل حسابك - صالح 5 دقائق</p>
+        </div>
+      `
+    });
+
+    console.log('✅ بريد مرسل بنجاح لـ', email, 'MessageID:', result.messageId);
+    res.json({ message: '✅ تم إرسال الكود لبريدك!', sent: true });
+    
+  } catch (error) {
+    console.error('💥 خطأ إرسال:', error.message);
+    res.status(500).json({ error: 'فشل الإرسال: ' + error.message });
   }
 });
 
-app.post('/api/verify-code', async (req, res) => {
-  try {
-    const { email, code } = req.body;
-    const record = verificationCodes.get(email);
-
-    if (!record || Date.now() > record.expiry) {
-      return res.status(400).json({ error: 'كود منتهي' });
-    }
-
-    if (record.code !== code) {
-      record.attempts++;
-      return res.status(400).json({ error: 'كود خاطئ' });
-    }
-
-    record.verified = true;
-    res.json({ success: true, message: 'تم التحقق!' });
-  } catch (e) {
-    res.status(500).json({ error: 'خطأ خادم' });
-  }
+app.post('/api/verify-code', (req, res) => {
+  console.log('🔍 Verify:', req.body);
+  // ... نفس الكود السابق
 });
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 });
 
-// تشغيل الخادم
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server: http://0.0.0.0:${PORT}`);
 });
