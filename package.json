@@ -1,0 +1,17 @@
+{
+  "name": "email-verification",
+  "version": "1.0.0",
+  "description": "مشروع للتحقق من البريد الإلكتروني مع رمز 6 أرقام",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Hussein",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "nodemailer": "^6.9.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  }
+}
