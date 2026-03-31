@@ -16,13 +16,15 @@ const limiter = rateLimit({windowMs:15*60*1000,max:10});
 
 const transporter = nodemailer.createTransport({
   host: 'mail-eu.smtp2go.com',
-  port: 587,
-  secure: false,
+  port: 587,       // يمكنك أيضا تجربة 465
+  secure: false,   // true للـ SSL/TLS المباشر على 465
   auth: {
-    user: 'ali1995',
+    user: 'ali1995@yourdomain.com', // يجب أن يكون البريد كامل
     pass: 'Aa19955Aa'
   },
-  tls: {rejectUnauthorized: false}
+  tls: {
+    rejectUnauthorized: true // true = التحقق من شهادة السيرفر، false = تجاهل
+  }
 });
 
 // Health
