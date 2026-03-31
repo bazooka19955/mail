@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل حساب جديد</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+        }
+
+        .container h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .message.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .verification-section {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .verification-section.active {
+            display: block;
+        }
+
+        .timer {
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .resend-btn {
+            background-color: #6c757d;
+            margin-top: 10px;
+        }
+
+        .resend-btn:disabled {
+            opacity: 0.5;
+        }
+
+        .code-input-group {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .code-input-group input {
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            max-length: 1;
+        }
+
+        .code-input-group input:focus {
+            border-color: #667eea;
+        }
+
+        .back-btn {
+            background-color: #6c757d;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- قسم إدخال البريد الإلكتروني -->
+        <div id="emailSection">
+            <h1>تسجيل حساب جديد</h1>
+            <form id="emailForm">
+                <div class="form-group">
+                    <label for="email">البريد الإلكتروني:</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="أدخل بريدك الإلكتروني" 
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn">إرسال رمز التحقق</button>
+                <div id="emailMessage" class="message"></div>
+            </form>
+        </div>
+
+        <!-- قسم التحقق من الرمز -->
+        <div id="verificationSection" class="verification-section">
+            <h1>تحقق من حسابك</h1>
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                تم إرسال رمز تحقق من 6 أرقام إلى بريدك الإلكتروني
+            </p>
+            
+            <div class="code-input-group">
+                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
+            </div>
+
+            <button id="verifyBtn" class="btn">تحقق من الرمز</button>
+            
+            <div class="timer">
+                <span>انتظر <span id="countdown">60</span> ثانية قبل طلب رمز جديد</span>
+            </div>
+
+            <button id="resendBtn" class="btn resend-btn" disabled>إرسال رمز جديد</button>
+            <button id="backBtn" class="btn back-btn">العودة</button>
+
+            <div id="verificationMessage" class="message"></div>
+        </div>
+    </div>
+
+    <script src="app-static.js"></script>
+</body>
+</html>
