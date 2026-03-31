@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false,
   auth: {
-    user: 'ali1995@hussein.my',
+    user: 'ali1995',
     pass: 'Aa19955Aa'
   },
   tls: {rejectUnauthorized: false}
@@ -38,7 +38,7 @@ app.post('/api/send', limiter, async (req, res) => {
     codes.set(email.toLowerCase(), {code, attempts:0, expiry:Date.now()+300000});
 
     await transporter.sendMail({
-      from: '"كود" <ali@hussein.my>',
+      from: '"كود" <fyp.hussein@hussein.my>',
       to: email,
       subject: code,
       html: `<h1 style="font-size:60px;text-align:center">${code}</h1>`
