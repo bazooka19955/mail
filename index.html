@@ -1,231 +1,102 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل حساب جديد</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 400px;
-            padding: 40px;
-        }
-
-        .container h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .message {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 5px;
-            text-align: center;
-            display: none;
-            font-size: 14px;
-        }
-
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-
-        .message.info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-            display: block;
-        }
-
-        .verification-section {
-            display: none;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-        }
-
-        .verification-section.active {
-            display: block;
-        }
-
-        .timer {
-            text-align: center;
-            color: #667eea;
-            font-weight: bold;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        .resend-btn {
-            background-color: #6c757d;
-            margin-top: 10px;
-        }
-
-        .resend-btn:disabled {
-            opacity: 0.5;
-        }
-
-        .code-input-group {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-
-        .code-input-group input {
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
-            text-align: center;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            max-length: 1;
-        }
-
-        .code-input-group input:focus {
-            border-color: #667eea;
-        }
-
-        .back-btn {
-            background-color: #6c757d;
-            margin-top: 15px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>تسجيل حساب جديد</title>
+<style>
+body { font-family: Arial; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f0f2f5; }
+.container { background:white; padding:30px; border-radius:10px; width: 350px; }
+h1 { text-align:center; margin-bottom:20px; }
+input { width:100%; padding:10px; margin:10px 0; border-radius:5px; border:1px solid #ccc; font-size:16px; }
+button { width:100%; padding:10px; background:#667eea; color:white; border:none; border-radius:5px; font-size:16px; cursor:pointer; }
+button:disabled { background:#aaa; cursor:not-allowed; }
+.message { margin:10px 0; text-align:center; font-size:14px; display:none; }
+.message.success { color:green; display:block; }
+.message.error { color:red; display:block; }
+.code-inputs { display:flex; justify-content:space-between; margin:15px 0; }
+.code-inputs input { width:40px; height:40px; text-align:center; font-size:18px; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- قسم إدخال البريد الإلكتروني -->
-        <div id="emailSection">
-            <h1>تسجيل حساب جديد</h1>
-            <form id="emailForm">
-                <div class="form-group">
-                    <label for="email">البريد الإلكتروني:</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        placeholder="أدخل بريدك الإلكتروني" 
-                        required
-                    >
-                </div>
-                <button type="submit" class="btn">إرسال رمز التحقق</button>
-                <div id="emailMessage" class="message"></div>
-            </form>
-        </div>
+<div class="container">
+  <div id="email-section">
+    <h1>تسجيل حساب جديد</h1>
+    <input type="email" id="email" placeholder="أدخل بريدك الإلكتروني">
+    <button id="sendBtn">إرسال رمز التحقق</button>
+    <div id="emailMsg" class="message"></div>
+  </div>
 
-        <!-- قسم التحقق من الرمز -->
-        <div id="verificationSection" class="verification-section">
-            <h1>تحقق من حسابك</h1>
-            <p style="text-align: center; color: #666; margin-bottom: 20px;">
-                تم إرسال رمز تحقق من 6 أرقام إلى بريدك الإلكتروني
-            </p>
-            
-            <div class="code-input-group">
-                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
-                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
-                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
-                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
-                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
-                <input type="text" class="code-input" maxlength="1" inputmode="numeric">
-            </div>
-
-            <button id="verifyBtn" class="btn">تحقق من الرمز</button>
-            
-            <div class="timer">
-                <span>انتظر <span id="countdown">60</span> ثانية قبل طلب رمز جديد</span>
-            </div>
-
-            <button id="resendBtn" class="btn resend-btn" disabled>إرسال رمز جديد</button>
-            <button id="backBtn" class="btn back-btn">العودة</button>
-
-            <div id="verificationMessage" class="message"></div>
-        </div>
+  <div id="verify-section" style="display:none;">
+    <h1>تحقق من بريدك</h1>
+    <div class="code-inputs">
+      <input type="text" maxlength="1"><input type="text" maxlength="1">
+      <input type="text" maxlength="1"><input type="text" maxlength="1">
+      <input type="text" maxlength="1"><input type="text" maxlength="1">
     </div>
+    <button id="verifyBtn">تحقق من الرمز</button>
+    <div id="verifyMsg" class="message"></div>
+  </div>
+</div>
 
-    <script src="app-static.js"></script>
+<script>
+const sendBtn = document.getElementById('sendBtn');
+const verifyBtn = document.getElementById('verifyBtn');
+const emailInput = document.getElementById('email');
+const emailMsg = document.getElementById('emailMsg');
+const verifyMsg = document.getElementById('verifyMsg');
+const emailSection = document.getElementById('email-section');
+const verifySection = document.getElementById('verify-section');
+
+sendBtn.onclick = async () => {
+  const email = emailInput.value;
+  if(!email) return;
+  sendBtn.disabled = true;
+  emailMsg.style.display='none';
+
+  try {
+    const res = await fetch('/api/send-code', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email}) });
+    const data = await res.json();
+    if(data.success){
+      emailSection.style.display='none';
+      verifySection.style.display='block';
+    } else {
+      emailMsg.className='message error';
+      emailMsg.textContent = data.message;
+      emailMsg.style.display='block';
+    }
+  } catch(err){
+    emailMsg.className='message error';
+    emailMsg.textContent='حدث خطأ';
+    emailMsg.style.display='block';
+  }
+  sendBtn.disabled = false;
+};
+
+verifyBtn.onclick = async () => {
+  const inputs = document.querySelectorAll('.code-inputs input');
+  const code = Array.from(inputs).map(i=>i.value).join('');
+  const email = emailInput.value;
+  if(code.length!==6) return;
+
+  verifyBtn.disabled = true;
+  verifyMsg.style.display='none';
+
+  try {
+    const res = await fetch('/api/verify-code', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, code}) });
+    const data = await res.json();
+    if(data.success){
+      verifyMsg.className='message success';
+      verifyMsg.textContent = data.message;
+    } else {
+      verifyMsg.className='message error';
+      verifyMsg.textContent = data.message;
+    }
+  } catch(err){
+    verifyMsg.className='message error';
+    verifyMsg.textContent = 'حدث خطأ';
+  }
+  verifyBtn.disabled = false;
+};
+</script>
 </body>
 </html>
