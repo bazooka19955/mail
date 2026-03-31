@@ -1,54 +1,115 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>تسجيل حساب جديد</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل حساب جديد</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: Arial,sans-serif; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px; }
+    .container { background:white; border-radius:10px; box-shadow:0 10px 40px rgba(0,0,0,0.2); width:100%; max-width:400px; padding:40px; }
+    h1 { text-align:center; color:#333; margin-bottom:30px; font-size:28px; }
+    .form-group { margin-bottom:20px; }
+    label { display:block; margin-bottom:8px; color:#555; font-weight:bold; font-size:14px; }
+    input { width:100%; padding:12px; border:1px solid #ddd; border-radius:5px; font-size:14px; }
+    input:focus { outline:none; border-color:#667eea; box-shadow:0 0 5px rgba(102,126,234,0.3); }
+    .btn { width:100%; padding:12px; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; border:none; border-radius:5px; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; }
+    .btn:disabled { opacity:0.6; cursor:not-allowed; }
+    .message { margin-top:15px; padding:12px; border-radius:5px; text-align:center; font-size:14px; display:none; }
+    .message.success { background-color:#d4edda; color:#155724; border:1px solid #c3e6cb; display:block; }
+    .message.error { background-color:#f8d7da; color:#721c24; border:1px solid #f5c6cb; display:block; }
+    .verification-section { display:none; margin-top:20px; padding-top:20px; border-top:1px solid #ddd; }
+    .code-input-group { display:flex; gap:8px; justify-content:center; margin:20px 0; }
+    .code-input-group input { width:50px; height:50px; font-size:24px; text-align:center; border:2px solid #ddd; border-radius:5px; }
+    .code-input-group input:focus { border-color:#667eea; }
+  </style>
 </head>
 <body>
-<h1>تسجيل حساب جديد</h1>
+  <div class="container">
 
-<div id="emailSection">
-  <input type="email" id="email" placeholder="أدخل بريدك الإلكتروني"/>
-  <button id="sendBtn">إرسال رمز التحقق</button>
-  <div id="emailMsg"></div>
-</div>
+    <!-- قسم إدخال البريد الإلكتروني -->
+    <div id="emailSection">
+      <h1>تسجيل حساب جديد</h1>
+      <div class="form-group">
+        <label for="email">البريد الإلكتروني:</label>
+        <input type="email" id="email" placeholder="أدخل بريدك الإلكتروني">
+      </div>
+      <button id="sendCodeBtn" class="btn">إرسال رمز التحقق</button>
+      <div id="emailMessage" class="message"></div>
+    </div>
 
-<div id="verifySection" style="display:none;">
-  <input type="text" id="code" placeholder="أدخل رمز التحقق"/>
-  <button id="verifyBtn">تحقق من الرمز</button>
-  <div id="verifyMsg"></div>
-</div>
+    <!-- قسم التحقق من الرمز -->
+    <div id="verificationSection" class="verification-section">
+      <h1>تحقق من حسابك</h1>
+      <p style="text-align:center; color:#666;">تم إرسال رمز تحقق من 6 أرقام إلى بريدك الإلكتروني</p>
+      <div class="code-input-group">
+        <input type="text" maxlength="1" class="code-input">
+        <input type="text" maxlength="1" class="code-input">
+        <input type="text" maxlength="1" class="code-input">
+        <input type="text" maxlength="1" class="code-input">
+        <input type="text" maxlength="1" class="code-input">
+        <input type="text" maxlength="1" class="code-input">
+      </div>
+      <button id="verifyBtn" class="btn">تحقق من الرمز</button>
+      <div id="verificationMessage" class="message"></div>
+    </div>
 
-<script>
-const sendBtn = document.getElementById('sendBtn');
-const verifyBtn = document.getElementById('verifyBtn');
+  </div>
 
-sendBtn.addEventListener('click', async ()=>{
-  const email = document.getElementById('email').value;
-  const res = await fetch('/api/send-code',{
-    method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify({ email })
-  });
-  const data = await res.json();
-  document.getElementById('emailMsg').innerText = data.message;
-  if(res.ok){
-    document.getElementById('emailSection').style.display='none';
-    document.getElementById('verifySection').style.display='block';
-  }
-});
+  <script>
+    const sendBtn = document.getElementById('sendCodeBtn');
+    const emailInput = document.getElementById('email');
+    const emailMsg = document.getElementById('emailMessage');
 
-verifyBtn.addEventListener('click', async ()=>{
-  const email = document.getElementById('email').value;
-  const code = document.getElementById('code').value;
-  const res = await fetch('/api/verify-code',{
-    method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify({ email, code })
-  });
-  const data = await res.json();
-  document.getElementById('verifyMsg').innerText = data.message;
-});
-</script>
+    const verificationSection = document.getElementById('verificationSection');
+    const codeInputs = document.querySelectorAll('.code-input');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const verificationMsg = document.getElementById('verificationMessage');
+
+    // إرسال الرمز
+    sendBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      if(!email){ emailMsg.textContent = "الرجاء إدخال البريد الإلكتروني"; emailMsg.className="message error"; return; }
+      try{
+        const res = await fetch('/api/send-code', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if(data.success){
+          emailMsg.textContent = data.message; emailMsg.className="message success";
+          document.getElementById('emailSection').style.display='none';
+          verificationSection.style.display='block';
+        } else {
+          emailMsg.textContent = data.message; emailMsg.className="message error";
+        }
+      }catch(err){
+        emailMsg.textContent = "حدث خطأ في الاتصال بالسيرفر"; emailMsg.className="message error";
+      }
+    });
+
+    // التحقق من الكود
+    verifyBtn.addEventListener('click', async () => {
+      const code = Array.from(codeInputs).map(i=>i.value).join('');
+      const email = emailInput.value.trim();
+      if(code.length!==6){ verificationMsg.textContent="أدخل الرمز كامل"; verificationMsg.className="message error"; return; }
+      try{
+        const res = await fetch('/api/verify-code', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ email, code })
+        });
+        const data = await res.json();
+        if(data.success){
+          verificationMsg.textContent = data.message; verificationMsg.className="message success";
+        } else {
+          verificationMsg.textContent = data.message; verificationMsg.className="message error";
+        }
+      }catch(err){
+        verificationMsg.textContent="حدث خطأ في الاتصال بالسيرفر"; verificationMsg.className="message error";
+      }
+    });
+  </script>
 </body>
 </html>
