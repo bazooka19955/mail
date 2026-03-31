@@ -16,10 +16,10 @@ const limiter = rateLimit({windowMs:15*60*1000,max:10});
 
 const transporter = nodemailer.createTransport({
   host: 'mail-eu.smtp2go.com',
-  port: 2525,
+  port: 587,
   secure: false,
   auth: {
-    user: 'hussein1995@hussein.my',
+    user: 'ali1995',
     pass: 'Aa19955Aa@@'
   },
   tls: {rejectUnauthorized: false}
@@ -38,7 +38,7 @@ app.post('/api/send', limiter, async (req, res) => {
     codes.set(email.toLowerCase(), {code, attempts:0, expiry:Date.now()+300000});
 
     await transporter.sendMail({
-      from: '"كود" <hussein1995@hussein.my>',
+      from: '"كود" <ali@hussein.my>',
       to: email,
       subject: code,
       html: `<h1 style="font-size:60px;text-align:center">${code}</h1>`
