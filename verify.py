@@ -1,89 +1,77 @@
 from flask import Flask, request, jsonify
 import requests
 from bs4 import BeautifulSoup
-import urllib3
 import random
+import urllib3
 
 urllib3.disable_warnings()
+
 app = Flask(__name__)
 
-# إعداد بيانات حساب Hetzner
-HETZNER_USER = 'virrn.me'
-HETZNER_PASS = 'Hussein12190386Aa@@'
-SMS_SENDER = 'HUSSEIN'  # اسم المرسل
+# ضع هنا بيانات Hetzner الخاصة بك
+HETZNER_DOMAIN = "virrn.me"
+HETZNER_PASSWORD = "Hussein12190386Aa@@"
+SMS_SENDER = "HUSSEIN"
 
-def send_sms_otp(phone: str) -> dict:
-    try:
-        country_code = phone[:3]
-        number = phone[3:]
+def send_sms_hetzner(phone, text):
+    session = requests.Session()
+    session.verify = False
 
-        session = requests.Session()
-        session.verify = False
+    # تسجيل دخول
+    r = session.get("https://konsoleh.your-server.de/")
+    soup = BeautifulSoup(r.text, "html.parser")
+    csrf_name = soup.find("input", {"name":"_csrf_name"})["value"]
+    csrf_token = soup.find("input", {"name":"_csrf_token"})["value"]
 
-        # تسجيل دخول
-        r = session.get('https://konsoleh.your-server.de/')
-        soup = BeautifulSoup(r.text, 'html.parser')
-        csrf_name  = soup.find('input', {'name': '_csrf_name'})['value']
-        csrf_token = soup.find('input', {'name': '_csrf_token'})['value']
+    login_resp = session.post("https://konsoleh.your-server.de/login.php", data={
+        "_csrf_name": csrf_name,
+        "_csrf_token": csrf_token,
+        "login_user_inputbox": HETZNER_DOMAIN,
+        "login_pass_inputbox": HETZNER_PASSWORD,
+        "level": "domain",
+    })
 
-        session.post('https://konsoleh.your-server.de/login.php', data={
-            '_csrf_name'         : csrf_name,
-            '_csrf_token'        : csrf_token,
-            'login_user_inputbox': HETZNER_USER,
-            'login_pass_inputbox': HETZNER_PASS,
-            'level'              : 'domain',
-        }, allow_redirects=True)
+    if "Fehler" in login_resp.text:
+        return False, "❌ فشل تسجيل الدخول إلى Hetzner"
 
-        # صفحة SMS
-        sms_page = session.get('https://konsoleh.your-server.de/sms_gateway.php?action=newsms')
-        soup2 = BeautifulSoup(sms_page.text, 'html.parser')
-        csrf_name2  = soup2.find('input', {'name': '_csrf_name'})['value']
-        csrf_token2 = soup2.find('input', {'name': '_csrf_token'})['value']
+    # صفحة إرسال SMS
+    sms_page = session.get("https://konsoleh.your-server.de/sms_gateway.php?action=newsms")
+    soup2 = BeautifulSoup(sms_page.text, "html.parser")
+    csrf_name2 = soup2.find("input", {"name":"_csrf_name"})["value"]
+    csrf_token2 = soup2.find("input", {"name":"_csrf_token"})["value"]
 
-        # توليد OTP
-        otp = random.randint(1000, 9999)
-        text_message = f'كود التحقق: {otp}'
+    # إرسال الرسالة
+    result = session.post("https://konsoleh.your-server.de/sms_gateway.php", data={
+        "action": "sendsms",
+        "PREFIX_MOBILE_NUMBER": phone[:3],  # الكود الدولي
+        "country": phone[:3],
+        "MOBILE_NUMBER": phone[3:],
+        "SMS_SENDER": SMS_SENDER,
+        "SMS_TEXT": text,
+        "counter": str(160 - len(text)),
+        "_csrf_name": csrf_name2,
+        "_csrf_token": csrf_token2,
+    })
 
-        # إرسال الرسالة
-        result = session.post(
-            'https://konsoleh.your-server.de/sms_gateway.php',
-            data={
-                'action'              : 'sendsms',
-                'PREFIX_MOBILE_NUMBER': country_code,
-                'country'             : country_code,
-                'MOBILE_NUMBER'       : number,
-                'SMS_SENDER'          : SMS_SENDER,
-                'SMS_TEXT'            : text_message,
-                'counter'             : str(160 - len(text_message)),
-                '_csrf_name'          : csrf_name2,
-                '_csrf_token'         : csrf_token2,
-            }
-        )
+    if "erfolgreich" in result.text:
+        return True, "✅ تم إرسال الرسالة بنجاح!"
+    else:
+        return False, result.text[:200]
 
-        soup3 = BeautifulSoup(result.text, 'html.parser')
-        content = soup3.find(id='content')
-        if content:
-            text_result = content.text.strip()
-            if 'erfolgreich' in text_result:
-                return {'success': True, 'otp': otp, 'message': 'تم إرسال الرسالة بنجاح!'}
-            else:
-                return {'success': False, 'message': f'فشل الإرسال: {text_result[:200]}'}
+@app.route("/send-otp", methods=["POST"])
+def send_otp():
+    data = request.get_json()
+    if not data or "phone" not in data:
+        return jsonify({"success": False, "message": "رقم الهاتف مطلوب"}), 400
 
-        return {'success': False, 'message': 'لم يتم تلقي أي رد من السيرفر.'}
+    phone = data["phone"]
+    otp = random.randint(1000, 9999)
+    text = f"رمز التحقق الخاص بك: {otp}"
 
-    except Exception as e:
-        return {'success': False, 'message': str(e)}
-
-# نقطة الوصول API
-@app.route('/send-otp', methods=['POST'])
-def api_send_otp():
-    data = request.json
-    phone = data.get('phone')
-    if not phone or len(phone) < 8:
-        return jsonify({'success': False, 'message': 'رقم الهاتف غير صالح.'})
-    
-    result = send_sms_otp(phone)
-    return jsonify(result)
+    success, message = send_sms_hetzner(phone, text)
+    return jsonify({"success": success, "message": message, "otp": otp if success else None})
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
