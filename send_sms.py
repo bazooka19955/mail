@@ -30,9 +30,9 @@ def send_sms(number, otp, sender="MyApp"):
         login_data = {
             '_csrf_name': csrf_name,
             '_csrf_token': csrf_token,
-            'login_user_inputbox': 'virrn.me',   # ضع هنا بياناتك
-            'login_pass_inputbox': 'Hussein12190386Aa@@', # ضع هنا كلمة المرور
-            'level': 'domain'
+        'login_user_inputbox': 'virrn.me',
+        'login_pass_inputbox': 'Hussein12190386Aa@@',
+        'level'              : 'domain',
         }
         login_resp = session.post('https://konsoleh.your-server.de/login.php', data=login_data, allow_redirects=True)
 
